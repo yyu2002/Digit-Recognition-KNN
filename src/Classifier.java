@@ -1,8 +1,5 @@
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Classifier {
     private ArrayList<DataPoint> trainingData;
@@ -14,34 +11,108 @@ public class Classifier {
     }
 
     public void addTrainingData(List<DataPoint> points) {
-        // TODO: add all points from input to the training data
+        for (DataPoint p : points) {
+            addTrainingData(p);
+        }
     }
 
     public void addTrainingData(DataPoint point) {
-        // TODO: add all points from input to the training data
+        trainingData.add(point);
     }
 
     public void addTrainingData(String label, DImage img) {
         addTrainingData(new DataPoint(label, img));
     }
 
+    /*
+        public String classify(short[][] pixels) {
+            if (trainingData.size() == 0) return "no training data";
+            double min = Integer.MAX_VALUE;
+            DataPoint nearest = trainingData.get(0);
+
+            for (DataPoint p : trainingData) {
+                if (distance(p.getData().getBWPixelGrid(), pixels) < min) {
+                    min = distance(p.getData().getBWPixelGrid(), pixels);
+                    nearest = p;
+                }
+            }
+            return nearest.getLabel();  // replace this line
+        }
+    */
+
+    public String classify(short[][] pixels, ArrayList<DataPoint> dataPoints) {
+        if (dataPoints.size() == 0) return "no training data";
+        double min = Integer.MAX_VALUE;
+        DataPoint nearest = dataPoints.get(0);
+
+        for (DataPoint p : dataPoints) {
+            if (distance(p.getData().getBWPixelGrid(), pixels) < min) {
+                min = distance(p.getData().getBWPixelGrid(), pixels);
+                nearest = p;
+            }
+        }
+        dataPoints.remove(nearest);
+        return nearest.getLabel();  // replace this line
+    }
+
     public String classify(short[][] pixels) {
         if (trainingData.size() == 0) return "no training data";
+        ArrayList<String> nearest = new ArrayList<>();
 
-        // TODO: write a k-nearest-neighbor classifier.  Return its prediction of "0" to "9"
+        ArrayList<DataPoint> copyOfData = cloneTrainingData();
+        for (int i = 0; i < n; i++) {
+            if (copyOfData.size() > 0)
+                nearest.add(classify(pixels, copyOfData));
+        }
 
-        return "no prediction";  // replace this line
+        System.out.println(nearest);
+        return getMostFrequent(nearest);
+    }
+
+    public String getMostFrequent(ArrayList<String> list) {
+        String mostCommon = list.get(0);
+        int highest = 0;
+        while (list.size() > 0) {
+            String current = list.remove(0);
+            int count = 1;
+            for (int i = 1; i < list.size(); i++) {
+                if (list.get(i).equals(current)) {
+                    count++;
+                    list.remove(i);
+                }
+            }
+            if (count > highest) {
+                highest = count;
+                mostCommon = current;
+            }
+        }
+        System.out.println(mostCommon);
+        return mostCommon;
+    }
+
+    public ArrayList<DataPoint> cloneTrainingData() {
+        ArrayList<DataPoint> clone = new ArrayList<DataPoint>();
+        for (DataPoint dataPoint : trainingData)
+            clone.add(dataPoint);
+        return clone;
     }
 
     public String classify(DImage img) {
         return classify(img.getBWPixelGrid());
     }
 
-    public double distance(short[][] d1, short[][] d2) {
-        // TODO:  Use the n-dimensional Euclidean distance formula to find the distance between d1 and d2
 
-        return -1;
+    public double distance(short[][] d1, short[][] d2) {
+        double totalSum = 0;
+        for (int i = 0; i < d1.length; i++) {
+            for (int j = 0; j < d1[i].length; j++) {
+                int sum = d1[i][j] - d2[i][j];
+                totalSum += sum * sum;
+            }
+        }
+        return Math.sqrt(totalSum);
     }
+
 
     public void test(List<DataPoint> test) {
         ArrayList<DataPoint> correct = new ArrayList<>();
