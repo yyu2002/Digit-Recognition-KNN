@@ -1,6 +1,6 @@
 import java.lang.reflect.Array;
 import java.util.*;
-
+ 
 public class Classifier {
     private ArrayList<DataPoint> trainingData;
     private int n;
